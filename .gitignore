@@ -1,2 +1,4 @@
 *.infile
 *.pdf
+
+__pycache__
