@@ -17,6 +17,10 @@ class LeeMooreAlg:
         self.wires = wires
         self.dimensions = dimensions
         
+        self.run_button = None
+        self.start_button = None
+        self.next_button = None
+        
         # Initialize map (an array representation of the grid)
         self.map = np.zeros((dimensions["x"], dimensions["y"]))
         for block in self.blocks:
@@ -32,6 +36,11 @@ class LeeMooreAlg:
         grid to the expansion list
         """
         print("Running Lee Moore algorithm...")
+        # Disable "run" button
+        if self.run_button is not None:
+            self.run_button["state"] = "disabled"
+            self.next_button["state"] = "normal"
+            self.start_button["state"] = "disabled"
         
         # 1. Choose a start and end
         self.set_source_sink()
@@ -59,6 +68,7 @@ class LeeMooreAlg:
                 add_text(x, y, self.c, self.grid, num, tag="numbers")
                 # Update canvas
                 self.c.update()
+                time.sleep(display_speed)
         
 
     def clear_canvas(self):
@@ -79,6 +89,12 @@ class LeeMooreAlg:
             for col in range(self.map.shape[1]):
                 if self.map[row, col] < -1:
                     self.map[row, col] = 0
+                    
+        # Reset run button
+        if self.run_button is not None:
+            self.run_button["state"] = "normal"
+            self.start_button["state"] = "normal"
+            self.next_button["state"] = "disabled"
             
         print(self.map)
         print(self.wires)
@@ -135,6 +151,9 @@ class LeeMooreAlg:
         else:
             # Draw the wire
             draw_box(self.path[0], self.path[1], self.c, self.grid, wire_colour_palette[self.current_wire])
+            self.c.update()
+            time.sleep(display_speed)
+            
             num = self.map[self.path[0], self.path[1]]
             # Update map
             self.map[self.path[0], self.path[1]] = self.current_wire
@@ -166,6 +185,8 @@ class LeeMooreAlg:
         
         # Initialize
         self.start_algorithm()
+        self.start_button["state"] = "disabled"
+        self.next_button["state"] = "disabled"
         
         # Loop until a path is found
         while(1):

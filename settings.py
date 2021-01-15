@@ -19,3 +19,5 @@ wire_colour_palette = [
     "DarkSeaGreen",
     "coral"
 ]
+
+display_speed = 0.2
