@@ -9,6 +9,7 @@ def parse_file(filename):
     line = f.readline()
     x_max, y_max = line.strip().split(" ")
     print("Dimensions: {x} x {y}".format(x=x_max, y=y_max))
+    dimensions = {"x": int(x_max), "y": int(y_max)}
     
     line = f.readline()
     num_blocks = int(line.strip())
@@ -38,4 +39,4 @@ def parse_file(filename):
         
     f.close()
     
-    return blocks, wires
+    return dimensions, blocks, wires
