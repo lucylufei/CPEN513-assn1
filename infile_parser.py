@@ -28,14 +28,14 @@ def parse_file(filename):
     
     for i in range(num_wires):
         line = f.readline()
-        wires[i] = []
+        wires[i + 1] = []
         num_pins = int(line.strip().split(" ")[0])
         for j in range(num_pins):
             x = line.strip().split(" ")[j * 2 + 1]
             y = line.strip().split(" ")[j * 2 + 2]
-            wires[i].append([int(x), int(y)])
+            wires[i + 1].append([int(x), int(y)])
             
-        print("Wire {x}: {y}".format(x=i, y=wires[i]))
+        print("Wire {x}: {y}".format(x=i+1, y=wires[i+1]))
         
     f.close()
     
