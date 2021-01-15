@@ -10,6 +10,7 @@ print("Importing file...")
 dimensions, blocks, wires = parse_file("benchmarks/{}.infile".format(filename))
 print("Import complete. ")
 
+# Setup tkinter GUI interface
 root = Tk()
 grid = {"width": screensize["width"] / dimensions["x"], "height": screensize["height"] / dimensions["y"]}
 frame = Frame(root, width=screensize["width"], height=screensize["height"])
@@ -33,9 +34,10 @@ for wire in wires:
         draw_box(pin[0], pin[1], c, grid, wire_colour_palette[wire])
         add_text(pin[0], pin[1], c, grid, chr(wire + 64))
 
-
+# Lee-Moore algorithm
 leemore = LeeMooreAlg(c, dimensions, grid, blocks, wires)
 
+# Add buttons to the GUI
 button_frame = Frame(root, width=screensize["width"])
 start_button = Button(button_frame, text ="Start", command=leemore.start_algorithm)
 next_button = Button(button_frame, text ="Next", command=leemore.next_step)
@@ -46,6 +48,7 @@ start_button.grid(row=0, column=0)
 next_button.grid(row=0, column=1)
 run_button.grid(row=0, column=2)
 
+# Run GUI
 root.mainloop()
 
 
