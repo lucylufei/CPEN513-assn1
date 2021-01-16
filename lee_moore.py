@@ -76,14 +76,15 @@ class LeeMooreAlg:
         # Clear all number text
         self.c.delete("numbers")
         
-        # Clear completed pins/wire from list
-        try:
-            self.wires[self.current_wire].remove(self.current_drain)
-        except ValueError:
-            # The drain might not be a pin
-            pass
+        # # Clear completed pins/wire from list
+        # try:
+        #     self.wires[self.current_wire].remove(self.current_drain)
+        # except ValueError:
+        #     # The drain might not be a pin
+        #     pass
+        self.map[self.current_source[0], self.current_source[1]] = self.current_wire * 100
         self.wires[self.current_wire].remove(self.current_source)        
-        if (len(self.wires[self.current_wire]) == 0):
+        if (len(self.wires[self.current_wire]) == 1):
             del self.wires[self.current_wire]
             
         # Reset map to 0 for all empty blocks
@@ -130,7 +131,7 @@ class LeeMooreAlg:
                     self.label_box(x, y, num)
                     
                     # Check for matching wire
-                    if self.map[x, y] == self.current_wire and [x, y] != self.current_source:
+                    if self.map[x, y] == (self.current_wire * 100) and [x, y] != self.current_source:
                         # If drain is found, the expansion list can be cleared
                         self.expansion_list.clear()
                         print("Drain reached! Drain: {}".format([x, y]))
@@ -163,7 +164,7 @@ class LeeMooreAlg:
             
             num = self.map[self.path[0], self.path[1]]
             # Update map
-            self.map[self.path[0], self.path[1]] = self.current_wire
+            self.map[self.path[0], self.path[1]] = self.current_wire * 100
             
             # Find next box for the wire
             for x, y in [
@@ -177,7 +178,7 @@ class LeeMooreAlg:
                     break
                 
             # If no next box found, the routing is complete
-            if self.map[self.path[0], self.path[1]] == self.current_wire:
+            if self.map[self.path[0], self.path[1]] == (self.current_wire * 100):
                 print(self.path)
                 print("Done routing wire {w} from {s}".format(w=self.current_wire, s=self.current_source))
                 self.clear_canvas()
@@ -207,8 +208,18 @@ class LeeMooreAlg:
         """
         Choose pins for the source and the sink
         """
+        if len(self.current_wire) == 0:
+            print("No more wires to route!")
+            return
+            
         # Arbitrarily select an available source/sink
         self.current_wire = next(iter(self.wires))
-        self.current_source = self.wires[self.current_wire][0]
+        self.current_source = self.wires[self.current_wire][1]
+        self.current_drain = self.wires[self.current_wire][0]
+        self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 100
         
         print("Source: {s}".format(s=self.current_source))
+        
+        
+    def debug(self):
+        print(self.map)

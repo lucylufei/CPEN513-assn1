@@ -4,8 +4,8 @@ from tkinter.ttk import *
 from infile_parser import *
 from lee_moore import *
 
-filename = input("Infile: ")
-# filename = "kuma"
+# filename = input("Infile: ")
+filename = "kuma"
 print("Importing file...")
 dimensions, blocks, wires = parse_file("benchmarks/{}.infile".format(filename))
 print("Import complete. ")
@@ -42,6 +42,7 @@ button_frame = Frame(root, width=screensize["width"])
 run_button = Button(button_frame, text ="Run", command=leemore.run_algorithm)
 start_button = Button(button_frame, text ="Start", command=leemore.start_algorithm)
 next_button = Button(button_frame, text ="Next", command=leemore.next_step, state="disabled")
+debug_button = Button(button_frame, text ="Debug", command=leemore.debug)
 
 # Add buttons to algorithm
 leemore.run_button = run_button
@@ -52,6 +53,7 @@ button_frame.pack()
 start_button.grid(row=0, column=0)
 next_button.grid(row=0, column=1)
 run_button.grid(row=0, column=2)
+debug_button.grid(row=0, column=3)
 
 # Run GUI
 root.mainloop()
