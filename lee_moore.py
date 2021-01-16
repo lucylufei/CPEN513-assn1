@@ -1,3 +1,6 @@
+from tkinter import *
+from tkinter.ttk import *
+from tkinter import messagebox 
 import numpy as np
 import time
 from settings import *
@@ -20,6 +23,14 @@ class LeeMooreAlg:
         self.run_button = None
         self.start_button = None
         self.next_button = None
+        
+        # Count number of successful connections
+        self.failed_pins = 0
+        # Count total number of pins
+        self.total_pins = 0
+        
+        # Count number of successful wires
+        self.successful_wires = {}
         
         # Initialize map (an array representation of the grid)
         self.map = np.zeros((dimensions["x"], dimensions["y"]))
@@ -83,10 +94,15 @@ class LeeMooreAlg:
         # except ValueError:
         #     # The drain might not be a pin
         #     pass
-        self.map[self.current_source[0], self.current_source[1]] = self.current_wire * 100
+        self.map[self.current_source[0], self.current_source[1]] = self.current_wire * 1000
         self.wires[self.current_wire].remove(self.current_source)        
         if (len(self.wires[self.current_wire]) == 1):
+            if self.current_wire in self.successful_wires:
+                assert(self.successful_wires[self.current_wire] == False)
+            else:
+                self.successful_wires[self.current_wire] = True
             del self.wires[self.current_wire]
+            self.total_pins += 1
             
         # Reset map to 0 for all empty blocks
         for row in range(self.map.shape[0]):
@@ -132,7 +148,7 @@ class LeeMooreAlg:
                     self.label_box(x, y, num)
                     
                     # Check for matching wire
-                    if self.map[x, y] == (self.current_wire * 100) and [x, y] != self.current_source:
+                    if self.map[x, y] == (self.current_wire * 1000) and [x, y] != self.current_source:
                         # If drain is found, the expansion list can be cleared
                         self.expansion_list.clear()
                         print("Drain reached! Drain: {}".format([x, y]))
@@ -153,6 +169,8 @@ class LeeMooreAlg:
         # If the expansion list is empty but no path is found, there is no solution
         elif self.path == [-1, -1]:
             print("No solution found!")
+            self.successful_wires[self.current_wire] = False
+            self.failed_pins += 1
             self.clear_canvas()
             return -1
             
@@ -165,7 +183,7 @@ class LeeMooreAlg:
             
             num = self.map[self.path[0], self.path[1]]
             # Update map
-            self.map[self.path[0], self.path[1]] = self.current_wire * 100
+            self.map[self.path[0], self.path[1]] = self.current_wire * 1000
             
             # Find next box for the wire
             for x, y in [
@@ -179,7 +197,7 @@ class LeeMooreAlg:
                     break
                 
             # If no next box found, the routing is complete
-            if self.map[self.path[0], self.path[1]] == (self.current_wire * 100):
+            if self.map[self.path[0], self.path[1]] == (self.current_wire * 1000):
                 print(self.path)
                 print("Done routing wire {w} from {s}".format(w=self.current_wire, s=self.current_source))
                 self.clear_canvas()
@@ -218,10 +236,34 @@ class LeeMooreAlg:
         self.current_wire = next(iter(self.wires))
         self.current_source = self.wires[self.current_wire][1]
         self.current_drain = self.wires[self.current_wire][0]
-        self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 100
+        self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 1000
         
         print("Source: {s}".format(s=self.current_source))
+        self.total_pins += 1
         
         
     def debug(self):
         print(self.map)
+        
+    def run(self):
+        
+        while True:
+            if self.run_algorithm() == 0:
+                break
+        
+        total_wires = 0
+        connected_wires = 0
+        for wire in self.successful_wires:
+            total_wires += 1
+            if self.successful_wires[wire] == True:
+                connected_wires += 1
+            
+        messagebox.showinfo("Done",
+            "Routing complete \n{x} of {y} wires successfully connected. \n{z} of {w} pins missing.".format(
+                x=connected_wires,
+                y=total_wires,
+                z=self.failed_pins,
+                w=self.total_pins
+            )
+        )    
+           

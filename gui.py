@@ -39,10 +39,11 @@ leemore = LeeMooreAlg(c, dimensions, grid, blocks, wires)
 
 # Add buttons to the GUI
 button_frame = Frame(root, width=screensize["width"])
-run_button = Button(button_frame, text ="Run", command=leemore.run_algorithm)
+run_button = Button(button_frame, text ="Connect 1 Pin", command=leemore.run_algorithm)
 start_button = Button(button_frame, text ="Start", command=leemore.start_algorithm)
 next_button = Button(button_frame, text ="Next", command=leemore.next_step, state="disabled")
 debug_button = Button(button_frame, text ="Debug", command=leemore.debug)
+go_button = Button(button_frame, text="Go", command=leemore.run)
 
 # Add buttons to algorithm
 leemore.run_button = run_button
@@ -54,6 +55,7 @@ start_button.grid(row=0, column=0)
 next_button.grid(row=0, column=1)
 run_button.grid(row=0, column=2)
 debug_button.grid(row=0, column=3)
+go_button.grid(row=0, column=4)
 
 # Run GUI
 root.mainloop()
