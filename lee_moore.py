@@ -43,7 +43,8 @@ class LeeMooreAlg:
             self.start_button["state"] = "disabled"
         
         # 1. Choose a start and end
-        self.set_source_sink()
+        if self.set_source_sink() == 0:
+            return 0
         
         # 2. Add source to expansion list
         self.expansion_list = [(1, self.current_source)]
@@ -193,7 +194,8 @@ class LeeMooreAlg:
         print("Running Lee Moore algorithm...")
         
         # Initialize
-        self.start_algorithm()
+        if self.start_algorithm() == 0:
+            return 0
         self.start_button["state"] = "disabled"
         self.next_button["state"] = "disabled"
         
@@ -208,9 +210,9 @@ class LeeMooreAlg:
         """
         Choose pins for the source and the sink
         """
-        if len(self.current_wire) == 0:
+        if len(self.wires) == 0:
             print("No more wires to route!")
-            return
+            return 0
             
         # Arbitrarily select an available source/sink
         self.current_wire = next(iter(self.wires))
