@@ -21,3 +21,5 @@ wire_colour_palette = [
 ]
 
 display_speed = 0.01
+
+wire_selection = "random"

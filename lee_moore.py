@@ -3,6 +3,8 @@ from tkinter.ttk import *
 from tkinter import messagebox 
 import numpy as np
 import time
+import random
+import copy
 from settings import *
 from util import *
 
@@ -18,6 +20,7 @@ class LeeMooreAlg:
         self.grid = grid
         self.blocks = blocks
         self.wires = wires
+        self.original_wires = copy.deepcopy(wires)
         self.dimensions = dimensions
         
         self.run_button = None
@@ -177,7 +180,7 @@ class LeeMooreAlg:
         # Otherwise, a path has been found
         else:
             # Draw the wire
-            draw_box(self.path[0], self.path[1], self.c, self.grid, wire_colour_palette[self.current_wire])
+            draw_box(self.path[0], self.path[1], self.c, self.grid, wire_colour_palette[self.current_wire], tag="wire")
             self.c.update()
             time.sleep(display_speed)
             
@@ -231,10 +234,17 @@ class LeeMooreAlg:
         if len(self.wires) == 0:
             print("No more wires to route!")
             return 0
-            
+        
+        # Select a wire
+        if wire_selection == "in_order":
+            self.current_wire = next(iter(self.wires))
+        elif wire_selection == "random":
+            self.current_wire = random.choice(list(self.wires.keys()))
+        else:
+            raise Exception
+        
         # Arbitrarily select an available source/sink
-        self.current_wire = next(iter(self.wires))
-        self.current_source = self.wires[self.current_wire][1]
+        self.current_source = random.choice(self.wires[self.current_wire][1:])
         self.current_drain = self.wires[self.current_wire][0]
         self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 1000
         
@@ -246,7 +256,10 @@ class LeeMooreAlg:
         print(self.map)
         
     def run(self):
-        
+        self.start_button["state"] = "disabled"
+        self.next_button["state"] = "disabled"
+        self.run_button["state"] = "disabled"
+                
         while True:
             if self.run_algorithm() == 0:
                 break
@@ -267,3 +280,32 @@ class LeeMooreAlg:
             )
         )    
            
+           
+    def reset(self):
+        # Remove wires
+        self.c.delete("wire")
+        
+        # Remove numbers
+        self.c.delete("numbers")
+        
+        # Reset variables
+        self.total_pins = 0
+        self.failed_pins = 0
+        self.successful_wires.clear()
+        self.path = [-1, -1]
+        self.wires = copy.deepcopy(self.original_wires)
+        print(self.wires)
+        
+        # Reinitialize map (an array representation of the grid)
+        self.map = np.zeros((self.dimensions["x"], self.dimensions["y"]))
+        for block in self.blocks:
+            self.map[block[0], block[1]] = -1
+        for wire in self.wires:
+            for pin in self.wires[wire]:
+                self.map[pin[0], pin[1]] = wire
+        print(self.map)
+        
+        # Reset buttons
+        self.start_button["state"] = "normal"
+        self.next_button["state"] = "disabled"
+        self.run_button["state"] = "normal"

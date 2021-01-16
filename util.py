@@ -1,12 +1,13 @@
 
-def draw_box(x, y, c, grid, colour):
+def draw_box(x, y, c, grid, colour, tag=""):
     """
     Draw a box on the canvas (c) at (x, y) coordinates at (grid) size with (colour)
     """
     c.create_rectangle(
         x * grid["width"], y * grid["height"],
         (x + 1) * grid["width"], (y + 1) * grid["height"],
-        fill=colour
+        fill=colour,
+        tag=tag
     )
     
 def add_text(x, y, c, grid, text, colour="black", tag=""):
