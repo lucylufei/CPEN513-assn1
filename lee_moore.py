@@ -56,19 +56,17 @@ class LeeMooreAlg:
         """
         Label a grid box with (num) at (x, y) coordinates
         """
-        # Check that the coordinates fall inside the dimensions
-        if (x in range(self.dimensions["x"]) and y in range(self.dimensions["y"])):
-            # If the map shows 0, the block is empty
-            if (self.map[x, y] == 0.0):
-                # Update map
-                self.map[x, y] = -1 * num
-                # Update expansion list
-                self.expansion_list.append((num, [x, y]))
-                # Add label
-                add_text(x, y, self.c, self.grid, num, tag="numbers")
-                # Update canvas
-                self.c.update()
-                time.sleep(display_speed)
+        # If the map shows 0, the block is empty
+        if (self.map[x, y] == 0.0):
+            # Update map
+            self.map[x, y] = -1 * num
+            # Update expansion list
+            self.expansion_list.append((num, [x, y]))
+            # Add label
+            add_text(x, y, self.c, self.grid, num, tag="numbers")
+            # Update canvas
+            self.c.update()
+            time.sleep(display_speed)
         
 
     def clear_canvas(self):
@@ -79,8 +77,12 @@ class LeeMooreAlg:
         self.c.delete("numbers")
         
         # Clear completed pins/wire from list
+        try:
+            self.wires[self.current_wire].remove(self.current_drain)
+        except ValueError:
+            # The drain might not be a pin
+            pass
         self.wires[self.current_wire].remove(self.current_source)        
-        self.wires[self.current_wire].remove(self.current_drain)
         if (len(self.wires[self.current_wire]) == 0):
             del self.wires[self.current_wire]
             
@@ -122,30 +124,35 @@ class LeeMooreAlg:
                 (next_box[0]+1, next_box[1]),
                 (next_box[0], next_box[1]+1)
             ]:
-                # Label the block
-                self.label_box(x, y, num)
+                if (x in range(self.dimensions["x"]) and y in range(self.dimensions["y"])):
                 
-                # Check for drain
-                if [x, y] == self.current_drain:
-                    # If drain is found, the expansion list can be cleared
-                    self.expansion_list.clear()
-                    print("Drain reached!")
+                    # Label the block
+                    self.label_box(x, y, num)
                     
-                    # Find next box to connect drain to
-                    for x, y in [
-                        (x, y-1),
-                        (x-1, y),
-                        (x+1, y),
-                        (x, y+1)
-                    ]:
-                        if self.map[x, y] < -1:
-                            self.path = [x, y]
-                            break
-                    break
-        
+                    # Check for matching wire
+                    if self.map[x, y] == self.current_wire and [x, y] != self.current_source:
+                        # If drain is found, the expansion list can be cleared
+                        self.expansion_list.clear()
+                        print("Drain reached! Drain: {}".format([x, y]))
+                        self.current_drain = [x, y]
+                        
+                        # Find next box to connect drain to
+                        for x, y in [
+                            (x, y-1),
+                            (x-1, y),
+                            (x+1, y),
+                            (x, y+1)
+                        ]:
+                            if self.map[x, y] < -1:
+                                self.path = [x, y]
+                                break
+                        break
+            
         # If the expansion list is empty but no path is found, there is no solution
-        elif self.path is [-1, -1]:
+        elif self.path == [-1, -1]:
             print("No solution found!")
+            self.clear_canvas()
+            return -1
             
         # Otherwise, a path has been found
         else:
@@ -171,7 +178,8 @@ class LeeMooreAlg:
                 
             # If no next box found, the routing is complete
             if self.map[self.path[0], self.path[1]] == self.current_wire:
-                print("Done routing wire {w} from {s} to {d}".format(w=self.current_wire, s=self.current_source, d=self.current_drain))
+                print(self.path)
+                print("Done routing wire {w} from {s}".format(w=self.current_wire, s=self.current_source))
                 self.clear_canvas()
                 return 1
         return 0
@@ -191,7 +199,7 @@ class LeeMooreAlg:
         # Loop until a path is found
         while(1):
             result = self.next_step()
-            if result == 1:
+            if result != 0:
                 break
         
     
@@ -202,6 +210,5 @@ class LeeMooreAlg:
         # Arbitrarily select an available source/sink
         self.current_wire = next(iter(self.wires))
         self.current_source = self.wires[self.current_wire][0]
-        self.current_drain = self.wires[self.current_wire][1]
         
-        print("Source: {s}, Drain: {d}".format(s=self.current_source, d=self.current_drain))
+        print("Source: {s}".format(s=self.current_source))

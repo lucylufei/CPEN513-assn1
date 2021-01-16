@@ -20,4 +20,4 @@ wire_colour_palette = [
     "coral"
 ]
 
-display_speed = 0.2
+display_speed = 0.01

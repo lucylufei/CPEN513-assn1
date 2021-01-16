@@ -5,7 +5,7 @@ from infile_parser import *
 from lee_moore import *
 
 filename = input("Infile: ")
-# filename = "sydney"
+# filename = "kuma"
 print("Importing file...")
 dimensions, blocks, wires = parse_file("benchmarks/{}.infile".format(filename))
 print("Import complete. ")
