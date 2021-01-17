@@ -4,8 +4,8 @@ from tkinter.ttk import *
 from infile_parser import *
 from lee_moore import *
 
-# filename = input("Infile: ")
-filename = "kuma"
+
+# filename = "stdcell"
 print("Importing file...")
 dimensions, blocks, wires = parse_file("benchmarks/{}.infile".format(filename))
 print("Import complete. ")
@@ -43,7 +43,8 @@ run_button = Button(button_frame, text ="Connect 1 Pin", command=leemore.run_alg
 start_button = Button(button_frame, text ="Init", command=leemore.start_algorithm)
 next_button = Button(button_frame, text ="Step", command=leemore.next_step, state="disabled")
 debug_button = Button(button_frame, text ="Debug", command=leemore.debug)
-go_button = Button(button_frame, text="Go", command=leemore.run)
+go_button = Button(button_frame, text="Run Once", command=leemore.run)
+benchmark_button = Button(button_frame, text="Optimize", command=leemore.benchmark)
 reset_button = Button(button_frame, text="Reset", command=leemore.reset)
 
 # Add buttons to algorithm
@@ -58,6 +59,7 @@ run_button.grid(row=0, column=2)
 debug_button.grid(row=0, column=3)
 go_button.grid(row=0, column=4)
 reset_button.grid(row=0, column=5)
+benchmark_button.grid(row=0, column=6)
 
 # Run GUI
 root.mainloop()

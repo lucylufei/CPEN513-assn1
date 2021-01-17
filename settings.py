@@ -22,4 +22,10 @@ wire_colour_palette = [
 
 display_speed = 0.01
 
-wire_selection = "random"
+wire_selection = "optimized"
+optimization_iterations = 50
+
+filename = input("Infile: ")
+output_style = "log"
+if output_style == "log":
+    output_file = open("{}_log.log".format(filename), "w+")

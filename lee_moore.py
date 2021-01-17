@@ -8,6 +8,8 @@ import copy
 from settings import *
 from util import *
 
+np.set_printoptions(threshold=np.inf)
+
 class LeeMooreAlg:
     """
     Implementation of the Lee Moore Algorithm
@@ -31,6 +33,8 @@ class LeeMooreAlg:
         self.failed_pins = 0
         # Count total number of pins
         self.total_pins = 0
+        # Count length of wires
+        self.total_wire_length = 0
         
         # Count number of successful wires
         self.successful_wires = {}
@@ -43,6 +47,14 @@ class LeeMooreAlg:
             for pin in self.wires[wire]:
                 self.map[pin[0], pin[1]] = wire
         print(self.map)
+
+        # Initialize to a random wire order
+        self.optimal_wire_order = list(self.wires.keys())
+        random.shuffle(self.optimal_wire_order)
+        self.next_optimal_wire_order = self.optimal_wire_order.copy()
+        print("Initial wire order: {}".format(self.optimal_wire_order))
+        output_file.write("Initial wire order: {}\n".format(self.optimal_wire_order))
+        self.optimal_wire_order_index = 0
 
     def start_algorithm(self):
         """
@@ -106,6 +118,7 @@ class LeeMooreAlg:
                 self.successful_wires[self.current_wire] = True
             del self.wires[self.current_wire]
             self.total_pins += 1
+            self.optimal_wire_order_index += 1
             
         # Reset map to 0 for all empty blocks
         for row in range(self.map.shape[0]):
@@ -172,9 +185,12 @@ class LeeMooreAlg:
         # If the expansion list is empty but no path is found, there is no solution
         elif self.path == [-1, -1]:
             print("No solution found!")
+            output_file.write("No solution found for wire {w} on pin {p}.\n".format(w=self.current_wire, p=self.current_source))
             self.successful_wires[self.current_wire] = False
             self.failed_pins += 1
             self.clear_canvas()
+            # Prioritize wire
+            self.next_optimal_wire_order.insert(0, self.next_optimal_wire_order.pop(self.next_optimal_wire_order.index(self.current_wire)))
             return -1
             
         # Otherwise, a path has been found
@@ -187,6 +203,7 @@ class LeeMooreAlg:
             num = self.map[self.path[0], self.path[1]]
             # Update map
             self.map[self.path[0], self.path[1]] = self.current_wire * 1000
+            self.total_wire_length += 1
             
             # Find next box for the wire
             for x, y in [
@@ -240,8 +257,11 @@ class LeeMooreAlg:
             self.current_wire = next(iter(self.wires))
         elif wire_selection == "random":
             self.current_wire = random.choice(list(self.wires.keys()))
+        elif wire_selection == "optimized":
+            self.current_wire = self.optimal_wire_order[self.optimal_wire_order_index]
         else:
             raise Exception
+        print("Routing wire {}...".format(self.current_wire))
         
         # Arbitrarily select an available source/sink
         self.current_source = random.choice(self.wires[self.current_wire][1:])
@@ -270,17 +290,27 @@ class LeeMooreAlg:
             total_wires += 1
             if self.successful_wires[wire] == True:
                 connected_wires += 1
-            
-        messagebox.showinfo("Done",
-            "Routing complete \n{x} of {y} wires successfully connected. \n{z} of {w} pins missing.".format(
-                x=connected_wires,
-                y=total_wires,
-                z=self.failed_pins,
-                w=self.total_pins
+         
+        if output_style == "alert":
+            messagebox.showinfo("Done",
+                "Routing complete \n{x} of {y} wires successfully connected. \n{z} of {w} pins missing.".format(
+                    x=connected_wires,
+                    y=total_wires,
+                    z=self.failed_pins,
+                    w=self.total_pins
+                )
+            )  
+        elif output_style == "log":
+            output_file.write("Routing complete \n{x} of {y} wires successfully connected. \n{z} of {w} pins missing.\n".format(
+                    x=connected_wires,
+                    y=total_wires,
+                    z=self.failed_pins,
+                    w=self.total_pins)
             )
-        )    
-           
-           
+            output_file.write("Total wire length: {}\n".format(self.total_wire_length))
+            output_file.write(np.array2string(self.map, precision=2, separator=',', suppress_small=True))
+            output_file.write("\n")
+            
     def reset(self):
         # Remove wires
         self.c.delete("wire")
@@ -292,7 +322,12 @@ class LeeMooreAlg:
         self.total_pins = 0
         self.failed_pins = 0
         self.successful_wires.clear()
+        self.total_wire_length = 0
         self.path = [-1, -1]
+        self.optimal_wire_order_index = 0
+        self.optimal_wire_order = self.next_optimal_wire_order.copy()
+        print("New wire order: {}".format(self.optimal_wire_order))
+        output_file.write("New wire order: {}\n".format(self.optimal_wire_order))
         self.wires = copy.deepcopy(self.original_wires)
         print(self.wires)
         
@@ -309,3 +344,13 @@ class LeeMooreAlg:
         self.start_button["state"] = "normal"
         self.next_button["state"] = "disabled"
         self.run_button["state"] = "normal"
+        
+    def benchmark(self):
+        for i in range(optimization_iterations):
+            self.run()
+            if self.failed_pins == 0:
+                print("Successful route found!")
+                break
+            self.reset()
+            
+        output_file.close()
