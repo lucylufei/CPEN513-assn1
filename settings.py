@@ -20,12 +20,17 @@ wire_colour_palette = [
     "coral"
 ]
 
-display_speed = 0.01
+display_delay = 0.1
 
 wire_selection = "optimized"
 optimization_iterations = 50
+
+algorithm = "astar"
 
 filename = input("Infile: ")
 output_style = "log"
 if output_style == "log":
     output_file = open("{}_log.log".format(filename), "w+")
+    
+    
+find_closest_drain = True

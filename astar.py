@@ -10,7 +10,7 @@ from util import *
 
 np.set_printoptions(threshold=np.inf)
 
-class LeeMooreAlg:
+class AStarAlg:
     """
     Implementation of the Lee Moore Algorithm
     """
@@ -28,6 +28,8 @@ class LeeMooreAlg:
         self.run_button = None
         self.start_button = None
         self.next_button = None
+        
+        self.drain_list = {}
         
         # Count number of successful connections
         self.failed_pins = 0
@@ -47,7 +49,10 @@ class LeeMooreAlg:
             for pin in self.wires[wire]:
                 self.map[pin[0], pin[1]] = wire
         print(self.map)
-
+        
+        # Initialize map of previous steps
+        self.reverse_pointer_map = [[(-1, -1) for i in range(dimensions["y"])] for j in range(dimensions["x"])]
+        
         # Initialize to a random wire order
         self.optimal_wire_order = list(self.wires.keys())
         random.shuffle(self.optimal_wire_order)
@@ -79,7 +84,7 @@ class LeeMooreAlg:
         self.path = [-1, -1]
         
         
-    def label_box(self, x, y, num):
+    def label_box(self, x, y, num, x1=-1, y1=-1):
         """
         Label a grid box with (num) at (x, y) coordinates
         """
@@ -89,6 +94,9 @@ class LeeMooreAlg:
             self.map[x, y] = -1 * num
             # Update expansion list
             self.expansion_list.append((num, [x, y]))
+            # Update reverse pointer
+            assert self.reverse_pointer_map[x][y] == (-1, -1)
+            self.reverse_pointer_map[x][y] = [x1, y1]
             # Add label
             add_text(x, y, self.c, self.grid, num, tag="numbers")
             # Update canvas
@@ -103,13 +111,8 @@ class LeeMooreAlg:
         # Clear all number text
         self.c.delete("numbers")
         
-        # # Clear completed pins/wire from list
-        # try:
-        #     self.wires[self.current_wire].remove(self.current_drain)
-        # except ValueError:
-        #     # The drain might not be a pin
-        #     pass
         self.map[self.current_source[0], self.current_source[1]] = self.current_wire * 1000
+        self.drain_list[self.current_wire].add((self.current_source[0], self.current_source[1]))
         self.wires[self.current_wire].remove(self.current_source)        
         if (len(self.wires[self.current_wire]) == 1):
             if self.current_wire in self.successful_wires:
@@ -125,6 +128,9 @@ class LeeMooreAlg:
             for col in range(self.map.shape[1]):
                 if self.map[row, col] < -1:
                     self.map[row, col] = 0
+                    
+        # Reset reverse pointers
+        self.reverse_pointer_map = [[(-1, -1) for i in range(self.dimensions["y"])] for j in range(self.dimensions["x"])]
                     
         # Reset run button
         if self.run_button is not None:
@@ -146,10 +152,9 @@ class LeeMooreAlg:
         if(len(self.expansion_list) > 0):
             # Sort and pop the lowest number entry
             self.expansion_list.sort()
-            expansion_number, next_box = self.expansion_list.pop(0)
+            num, next_box = self.expansion_list.pop(0)
             print("Next grid: {}".format(next_box))
             
-            num = expansion_number + 1
             
             # Check top, left, right, bottom blocks
             for x, y in [
@@ -160,8 +165,18 @@ class LeeMooreAlg:
             ]:
                 if (x in range(self.dimensions["x"]) and y in range(self.dimensions["y"])):
                 
+                    # Find drain
+                    if find_closest_drain:
+                        num = manhattan_distance(x, y, self.current_drain[0], self.current_drain[1])
+                        for drains in self.drain_list[self.current_wire]:
+                            closest_drain = manhattan_distance(x, y, drains[0], drains[1])
+                            if closest_drain < num:
+                                num = closest_drain
+                    else:
+                        num = manhattan_distance(x, y, self.current_drain[0], self.current_drain[1])
+                    
                     # Label the block
-                    self.label_box(x, y, num)
+                    self.label_box(x, y, num, next_box[0], next_box[1])
                     
                     # Check for matching wire
                     if self.map[x, y] == (self.current_wire * 1000) and [x, y] != self.current_source:
@@ -170,16 +185,7 @@ class LeeMooreAlg:
                         print("Drain reached! Drain: {}".format([x, y]))
                         self.current_drain = [x, y]
                         
-                        # Find next box to connect drain to
-                        for x, y in [
-                            (x, y-1),
-                            (x-1, y),
-                            (x+1, y),
-                            (x, y+1)
-                        ]:
-                            if self.map[x, y] < -1:
-                                self.path = [x, y]
-                                break
+                        self.path = [next_box[0], next_box[1]]
                         break
             
         # If the expansion list is empty but no path is found, there is no solution
@@ -203,18 +209,11 @@ class LeeMooreAlg:
             num = self.map[self.path[0], self.path[1]]
             # Update map
             self.map[self.path[0], self.path[1]] = self.current_wire * 1000
+            self.drain_list[self.current_wire].add((self.path[0], self.path[1]))
             self.total_wire_length += 1
             
             # Find next box for the wire
-            for x, y in [
-                (self.path[0], self.path[1]-1),
-                (self.path[0]-1, self.path[1]),
-                (self.path[0]+1, self.path[1]),
-                (self.path[0], self.path[1]+1)
-            ]:
-                if self.map[x, y] > num and self.map[x, y] < -1:
-                    self.path = [x, y]
-                    break
+            self.path = self.reverse_pointer_map[self.path[0]][self.path[1]]
                 
             # If no next box found, the routing is complete
             if self.map[self.path[0], self.path[1]] == (self.current_wire * 1000):
@@ -265,15 +264,44 @@ class LeeMooreAlg:
         
         # Arbitrarily select an available source/sink
         self.current_source = random.choice(self.wires[self.current_wire][1:])
-        self.current_drain = self.wires[self.current_wire][0]
-        self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 1000
         
-        print("Source: {s}".format(s=self.current_source))
+        if find_closest_drain:
+            print("Searching for closest drain...")
+            shortest_distance = self.dimensions["x"] * self.dimensions["y"]
+            indices = np.where(self.map == self.current_wire * 1000)
+            print("Possible drains: {}".format(list(zip(indices[0], indices[1]))))
+            
+            if len(list(zip(indices[0], indices[1]))) == 0:
+                self.current_drain = self.wires[self.current_wire][0]
+                # TODO: Choose closest pin for drain and then move to front of array
+            else:    
+                for index in list(zip(indices[0], indices[1])):
+                    distance = manhattan_distance(self.current_source[0], self.current_source[1], index[0], index[1])
+                    if distance < shortest_distance:
+                        self.current_drain = index
+                        shortest_distance = distance
+                
+                assert shortest_distance != self.dimensions["x"] * self.dimensions["y"]
+                print("Closest drain found at {}".format(self.current_drain))
+            
+        else:
+            self.current_drain = self.wires[self.current_wire][0]
+            # TODO: Choose random pin for drain and then move to front of array
+        
+        self.map[self.current_drain[0], self.current_drain[1]] = self.current_wire * 1000
+        try:
+            self.drain_list[self.current_wire].add((self.current_drain[0], self.current_drain[1]))
+        except KeyError:
+            self.drain_list[self.current_wire] = set()
+            self.drain_list[self.current_wire].add((self.current_drain[0], self.current_drain[1]))
+        
+        print("Source: {s}, Drain: {d}".format(s=self.current_source, d=self.current_drain))
         self.total_pins += 1
         
         
     def debug(self):
         print(self.map)
+        print(self.reverse_pointer_map)
         
     def run(self):
         self.start_button["state"] = "disabled"
@@ -324,6 +352,7 @@ class LeeMooreAlg:
         self.successful_wires.clear()
         self.total_wire_length = 0
         self.path = [-1, -1]
+        self.drain_list = {}
         self.optimal_wire_order_index = 0
         self.optimal_wire_order = self.next_optimal_wire_order.copy()
         print("New wire order: {}".format(self.optimal_wire_order))
@@ -339,6 +368,9 @@ class LeeMooreAlg:
             for pin in self.wires[wire]:
                 self.map[pin[0], pin[1]] = wire
         print(self.map)
+        
+        # Reset reverse pointers
+        self.reverse_pointer_map = [[(-1, -1) for i in range(self.dimensions["y"])] for j in range(self.dimensions["x"])]
         
         # Reset buttons
         self.start_button["state"] = "normal"

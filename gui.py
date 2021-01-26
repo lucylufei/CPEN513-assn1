@@ -3,9 +3,9 @@ from tkinter import *
 from tkinter.ttk import *
 from infile_parser import *
 from lee_moore import *
+from astar import *
 
 
-# filename = "stdcell"
 print("Importing file...")
 dimensions, blocks, wires = parse_file("benchmarks/{}.infile".format(filename))
 print("Import complete. ")
@@ -34,23 +34,31 @@ for wire in wires:
         draw_box(pin[0], pin[1], c, grid, wire_colour_palette[wire])
         add_text(pin[0], pin[1], c, grid, chr(wire + 64))
 
-# Lee-Moore algorithm
-leemore = LeeMooreAlg(c, dimensions, grid, blocks, wires)
+if algorithm == "astar":
+    # A* algorithm
+    print("Running A* algorithm...")
+    alg = AStarAlg(c, dimensions, grid, blocks, wires)
+elif algorithm == "leemoore":
+    # Lee-Moore algorithm
+    print("Running Lee-Moore algorithm...")
+    alg = LeeMooreAlg(c, dimensions, grid, blocks, wires)
+else:
+    raise Exception
 
 # Add buttons to the GUI
 button_frame = Frame(root, width=screensize["width"])
-run_button = Button(button_frame, text ="Connect 1 Pin", command=leemore.run_algorithm)
-start_button = Button(button_frame, text ="Init", command=leemore.start_algorithm)
-next_button = Button(button_frame, text ="Step", command=leemore.next_step, state="disabled")
-debug_button = Button(button_frame, text ="Debug", command=leemore.debug)
-go_button = Button(button_frame, text="Run Once", command=leemore.run)
-benchmark_button = Button(button_frame, text="Optimize", command=leemore.benchmark)
-reset_button = Button(button_frame, text="Reset", command=leemore.reset)
+run_button = Button(button_frame, text ="Connect 1 Pin", command=alg.run_algorithm)
+start_button = Button(button_frame, text ="Init", command=alg.start_algorithm)
+next_button = Button(button_frame, text ="Step", command=alg.next_step, state="disabled")
+debug_button = Button(button_frame, text ="Debug", command=alg.debug)
+go_button = Button(button_frame, text="Run Once", command=alg.run)
+benchmark_button = Button(button_frame, text="Optimize", command=alg.benchmark)
+reset_button = Button(button_frame, text="Reset", command=alg.reset)
 
 # Add buttons to algorithm
-leemore.run_button = run_button
-leemore.start_button = start_button
-leemore.next_button = next_button
+alg.run_button = run_button
+alg.start_button = start_button
+alg.next_button = next_button
 
 button_frame.pack()
 start_button.grid(row=0, column=0)

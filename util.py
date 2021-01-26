@@ -21,3 +21,11 @@ def add_text(x, y, c, grid, text, colour="black", tag=""):
         fill=colour,
         tag=tag
     )
+    
+def manhattan_distance(x1, y1, x2, y2):
+    '''
+    Calculate the manhattan distance between points (x1, y1) and (x2, y2)
+    '''
+    distance = abs(x1 - x2) + abs(y1 - y2)
+    return distance
+    
