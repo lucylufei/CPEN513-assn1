@@ -209,6 +209,7 @@ class AStarAlg:
             num = self.map[self.path[0], self.path[1]]
             # Update map
             self.map[self.path[0], self.path[1]] = self.current_wire * 1000
+            assert self.path != (-1, -1)
             self.drain_list[self.current_wire].add((self.path[0], self.path[1]))
             self.total_wire_length += 1
             
@@ -216,7 +217,7 @@ class AStarAlg:
             self.path = self.reverse_pointer_map[self.path[0]][self.path[1]]
                 
             # If no next box found, the routing is complete
-            if self.map[self.path[0], self.path[1]] == (self.current_wire * 1000):
+            if self.path == (-1, -1) or self.map[self.path[0], self.path[1]] == (self.current_wire * 1000):
                 print(self.path)
                 print("Done routing wire {w} from {s}".format(w=self.current_wire, s=self.current_source))
                 self.clear_canvas()
