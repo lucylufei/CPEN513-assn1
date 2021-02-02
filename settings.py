@@ -17,7 +17,10 @@ wire_colour_palette = [
     "lightgreen",
     "lavender",
     "DarkSeaGreen",
-    "coral"
+    "coral",
+    "blue", 
+    "green",
+    "yellow"
 ]
 
 # The interval (in seconds) at which numbers are displayed and cells are coloured in the GUI. 
@@ -37,7 +40,7 @@ algorithm = "leemoore"
 # Infile file name
 filename = input("Infile: ")
 
-# Toggle for alert at the end of routing. 
+# Toggle for alert at the end of routing. Possible options: "alert" to show alert at the end, "log" to record alert content in log file 
 output_style = "log"
 
 # Log file

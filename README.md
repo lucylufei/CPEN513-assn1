@@ -75,7 +75,7 @@ When the program begins, the user is prompted to enter the name of the `.infile`
 
 ![img](gui.png)
 
-The program can be configured using settings.py to adjust various parameters. For example, there is an option to use the closest cell connected to the appropriate source for the A-Star algorithm rather than the actual source. 
+The program can be configured using settings.py to adjust various parameters. For example, there is an option to use the closest cell connected to the appropriate source for the A-Star algorithm rather than the actual source. The algorithm to be used (Lee-Moore or A*) is also selected in the `settings.py` file. 
 
 Table 2 outlines the contents of each Python file.
 
