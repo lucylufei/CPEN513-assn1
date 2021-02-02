@@ -73,7 +73,7 @@ When the program begins, the user is prompted to enter the name of the `.infile`
 
 ·     **Reset**: This resets the circuit and undoes any existing connections. 
 
-![img](file:///C:/Users/lucyl/AppData/Local/Temp/msohtmlclip1/01/clip_image002.jpg)
+![img](gui.png)
 
 The program can be configured using settings.py to adjust various parameters. For example, there is an option to use the closest cell connected to the appropriate source for the A-Star algorithm rather than the actual source. 
 
@@ -106,19 +106,19 @@ A few additional circuits were also designed as part of the testing procedure.
 
  Figure 2 - Stdcell Final Route (Lee-Moore)
 
-![img](file:///C:/Users/lucyl/AppData/Local/Temp/msohtmlclip1/01/clip_image004.png)
+![img](leemoore_stdcell.png)
 
 Figure 3 - Stdcell Final Route (A*)
 
-![img](file:///C:/Users/lucyl/AppData/Local/Temp/msohtmlclip1/01/clip_image006.jpg)
+![img](astar_stdcell.png)
 
 Figure 4 - Stanley Final Route (Lee-Moore)
 
-![img](file:///C:/Users/lucyl/AppData/Local/Temp/msohtmlclip1/01/clip_image008.png)
+![img](leemoore_stanley.png)
 
 Figure 5 – Stanley Final Route (A*)
 
-![img](file:///C:/Users/lucyl/AppData/Local/Temp/msohtmlclip1/01/clip_image010.png)
+![img](astar_stanley.png)
 
 
 
