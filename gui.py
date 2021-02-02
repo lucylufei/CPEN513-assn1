@@ -60,6 +60,7 @@ alg.run_button = run_button
 alg.start_button = start_button
 alg.next_button = next_button
 
+# Organize GUI
 button_frame.pack()
 start_button.grid(row=0, column=0)
 next_button.grid(row=0, column=1)

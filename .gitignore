@@ -1,4 +1,5 @@
 *.infile
 *.pdf
+*.log
 
 __pycache__
